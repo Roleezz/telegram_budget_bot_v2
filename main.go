@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 
@@ -42,14 +43,14 @@ func connectToDB() *dynamodb.Client {
 }
 
 func connectToTelegramBot() *tgbotapi.BotAPI {
-	bot, err := tgbotapi.NewBotAPI("5505578325:AAE4sHnqPUc-VYi9rYQpuJsj4VPxAP_7_Uc")
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_BOT_TOKEN"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	wh, _ := tgbotapi.NewWebhook("https://3c7f-93-95-139-165.ngrok-free.app/" + bot.Token)
+	wh, _ := tgbotapi.NewWebhook(os.Getenv("NGROK_URL") + bot.Token)
 
 	_, err = bot.Request(wh)
 	if err != nil {
@@ -67,7 +68,7 @@ func connectToTelegramBot() *tgbotapi.BotAPI {
 	return bot
 }
 func main() {
-	dbClient := connectToDB()
+	// dbClient := connectToDB()
 	bot := connectToTelegramBot()
 
 	total := 0
