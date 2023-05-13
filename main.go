@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 
+	"github.com/Roleezz/telegram_budget_bot_v2/db"
+	"github.com/Roleezz/telegram_budget_bot_v2/telegram"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -81,47 +81,9 @@ func writeToTable(chatID int64, date int, value int, dbClient *dynamodb.Client) 
 
 }
 
-func connectToDB() *dynamodb.Client {
-	// Using the SDK's default configuration, loading additional config
-	// and credentials values from the environment variables, shared
-	// credentials, and shared configuration files
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("eu-central-1"))
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-	}
-
-	// Using the Config value, create the DynamoDB client
-	return dynamodb.NewFromConfig(cfg)
-}
-
-func connectToTelegramBot() *tgbotapi.BotAPI {
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_BOT_TOKEN"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	bot.Debug = true
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	wh, _ := tgbotapi.NewWebhook(os.Getenv("NGROK_URL") + bot.Token)
-
-	_, err = bot.Request(wh)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	info, err := bot.GetWebhookInfo()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if info.LastErrorDate != 0 {
-		log.Printf("Telegram callback failed: %s", info.LastErrorMessage)
-	}
-	return bot
-}
 func main() {
-	dbClient := connectToDB()
-	bot := connectToTelegramBot()
+	dbClient := db.ConnectToDB()
+	bot := telegram.ConnectToTelegramBot()
 	updates := bot.ListenForWebhook("/" + bot.Token)
 
 	go http.ListenAndServe("0.0.0.0:8443", nil)
