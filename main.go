@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/Roleezz/telegram_budget_bot_v2/db"
+	"github.com/Roleezz/telegram_budget_bot_v2/mongodb"
 	"github.com/Roleezz/telegram_budget_bot_v2/telegram"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -82,6 +83,8 @@ func writeToTable(chatID int64, date int, value int, dbClient *dynamodb.Client) 
 }
 
 func main() {
+	dbConnect := new(mongodb.Storage)
+	dbConnect.Сonnect()
 	dbClient := db.ConnectToDB()
 	bot := telegram.ConnectToTelegramBot()
 	updates := bot.ListenForWebhook("/" + bot.Token)
@@ -110,7 +113,7 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				writeToTable(update.Message.Chat.ID, update.Message.Date, number, dbClient)
+				dbConnect.Write(update.Message.Chat.ID, update.Message.Date, number)
 			} else {
 				writeMessage(bot, update.Message.Chat.ID, "Not matched")
 			}
