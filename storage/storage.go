@@ -11,27 +11,27 @@ import (
 )
 
 type Client struct {
-	client *mongo.Client
+	dbClient *mongo.Client
 }
 
 func (storage *Client) Connect() {
 	println("Connect to the storage")
 
 	clientOptions := options.Client().ApplyURI("mongodb://root:example@localhost:27017/")
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	dbClient, err := mongo.Connect(context.TODO(), clientOptions)
 
 	if err != nil {
 		panic(err)
 	}
 
 	var result bson.M
-	if err := client.Database("budget-bot").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
+	if err := dbClient.Database("budget-bot").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
 		panic(err)
 	}
 
 	println("Successfully connected to the storage")
 
-	storage.client = client
+	storage.dbClient = dbClient
 }
 
 func (storage *Client) Read() int {
@@ -39,7 +39,7 @@ func (storage *Client) Read() int {
 }
 
 func (storage *Client) Write(chatID int64, date int, value int) {
-	collection := storage.client.Database("budget-bot").Collection("transactions")
+	collection := storage.dbClient.Database("budget-bot").Collection("transactions")
 
 	// Insert a single document
 	res, err := collection.InsertOne(context.TODO(), bson.M{
