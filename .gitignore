@@ -1,2 +1,8 @@
 # env var
 .envrc
+
+# idea
+.idea/
+
+# build
+telegram_budget_bot_v2
