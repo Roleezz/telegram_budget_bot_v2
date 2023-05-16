@@ -7,17 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
-
-func writeMessage(bot *tgbotapi.BotAPI, chatID int64, text string) {
-	msg := tgbotapi.NewMessage(chatID, text)
-
-	if _, err := bot.Send(msg); err != nil {
-		log.Panic(err)
-	}
-}
 
 func main() {
 	storageClient := new(storage.Client)
@@ -37,7 +27,7 @@ func main() {
 			switch update.Message.Command() {
 			case "stats":
 				total := storageClient.Read()
-				writeMessage(bot, update.Message.Chat.ID, strconv.Itoa(total))
+				telegram.WriteMessage(bot, update.Message.Chat.ID, strconv.Itoa(total))
 			}
 		} else {
 			re := regexp.MustCompile(`^\s*\d+\.?\d+`)
@@ -52,7 +42,7 @@ func main() {
 
 				storageClient.Write(update.Message.Chat.ID, update.Message.Date, number)
 			} else {
-				writeMessage(bot, update.Message.Chat.ID, "Not matched")
+				telegram.WriteMessage(bot, update.Message.Chat.ID, "Not matched")
 			}
 		}
 	}

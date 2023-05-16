@@ -7,6 +7,14 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+func WriteMessage(bot *tgbotapi.BotAPI, chatID int64, text string) {
+	msg := tgbotapi.NewMessage(chatID, text)
+
+	if _, err := bot.Send(msg); err != nil {
+		log.Panic(err)
+	}
+}
+
 func ConnectToTelegramBot() *tgbotapi.BotAPI {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_BOT_TOKEN"))
 	if err != nil {
