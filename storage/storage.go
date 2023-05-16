@@ -14,6 +14,14 @@ type Client struct {
 	dbClient *mongo.Client
 }
 
+func (client *Client) database() *mongo.Database {
+	return client.dbClient.Database("budget-bot")
+}
+
+func (client *Client) collection() *mongo.Collection {
+	return client.database().Collection("transactions")
+}
+
 func (client *Client) Connect() {
 	println("Connect to the storage")
 
@@ -24,25 +32,19 @@ func (client *Client) Connect() {
 		panic(err)
 	}
 
+	client.dbClient = dbClient
+
 	var result bson.M
-	if err := dbClient.Database("budget-bot").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
+	if err := client.database().RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
 		panic(err)
 	}
 
 	println("Successfully connected to the storage")
-
-	client.dbClient = dbClient
-}
-
-func (client *Client) Read() int {
-	return 100
 }
 
 func (client *Client) Write(chatID int64, date int, value int) {
-	collection := client.dbClient.Database("budget-bot").Collection("transactions")
-
 	// Insert a single document
-	res, err := collection.InsertOne(context.TODO(), bson.M{
+	res, err := client.collection().InsertOne(context.TODO(), bson.M{
 		"ChatID":    chatID,
 		"CreatedAt": date,
 		"Value":     value})
