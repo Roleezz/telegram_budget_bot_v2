@@ -14,7 +14,7 @@ type Client struct {
 	dbClient *mongo.Client
 }
 
-func (storage *Client) Connect() {
+func (client *Client) Connect() {
 	println("Connect to the storage")
 
 	clientOptions := options.Client().ApplyURI("mongodb://root:example@localhost:27017/")
@@ -31,15 +31,15 @@ func (storage *Client) Connect() {
 
 	println("Successfully connected to the storage")
 
-	storage.dbClient = dbClient
+	client.dbClient = dbClient
 }
 
-func (storage *Client) Read() int {
+func (client *Client) Read() int {
 	return 100
 }
 
-func (storage *Client) Write(chatID int64, date int, value int) {
-	collection := storage.dbClient.Database("budget-bot").Collection("transactions")
+func (client *Client) Write(chatID int64, date int, value int) {
+	collection := client.dbClient.Database("budget-bot").Collection("transactions")
 
 	// Insert a single document
 	res, err := collection.InsertOne(context.TODO(), bson.M{
