@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/Roleezz/telegram_budget_bot_v2/storage"
-	"github.com/Roleezz/telegram_budget_bot_v2/telegram"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
+
+	"github.com/Roleezz/telegram_budget_bot_v2/storage"
+	"github.com/Roleezz/telegram_budget_bot_v2/telegram"
 )
 
 func main() {
