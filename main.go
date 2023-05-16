@@ -12,6 +12,7 @@ import (
 func main() {
 	storageClient := new(storage.Client)
 	storageClient.Connect()
+
 	bot := telegram.ConnectToTelegramBot()
 	updates := bot.ListenForWebhook("/" + bot.Token)
 
@@ -26,7 +27,7 @@ func main() {
 			// Extract the command from the Message.
 			switch update.Message.Command() {
 			case "stats":
-				total := storageClient.Read()
+				total := storageClient.CalculateTotal()
 				telegram.WriteMessage(bot, update.Message.Chat.ID, strconv.Itoa(total))
 			}
 		} else {
