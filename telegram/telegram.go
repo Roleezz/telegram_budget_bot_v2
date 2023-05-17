@@ -5,19 +5,24 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func writeMessage(bot *tgbotapi.BotAPI, chatID int64, text string) {
+type Client struct {
+	Bot *tgbotapi.BotAPI
+}
+
+func (client *Client) writeMessage(chatID int64, text string) {
 	msg := tgbotapi.NewMessage(chatID, text)
 
-	if _, err := bot.Send(msg); err != nil {
+	if _, err := client.Bot.Send(msg); err != nil {
 		log.Panic(err)
 	}
 }
 
-func connectToTelegramBot() *tgbotapi.BotAPI {
+func (client *Client) ConnectToTelegramBot() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_BOT_TOKEN"))
 	if err != nil {
 		log.Fatal(err)
@@ -40,14 +45,12 @@ func connectToTelegramBot() *tgbotapi.BotAPI {
 	if info.LastErrorDate != 0 {
 		log.Printf("Telegram callback failed: %s", info.LastErrorMessage)
 	}
-	return bot
+	client.Bot = bot
 }
 
-func Update() {
-	//storageClient := new(storage.Client)
-	//storageClient.Connect()
-	connect := connectToTelegramBot()
-	updates := connect.ListenForWebhook("/" + connect.Token)
+func (client *Client) Update(totalSum func() int, write func(chatID int64, date int, value int)) {
+
+	updates := client.Bot.ListenForWebhook("/" + client.Bot.Token)
 	go http.ListenAndServe("0.0.0.0:8443", nil)
 
 	for update := range updates {
@@ -59,25 +62,24 @@ func Update() {
 			// Extract the command from the Message.
 			switch update.Message.Command() {
 			case "stats":
-				// total := storageClient.CalculateTotal()
-				// strconv.Itoa(total)
-				writeMessage(connect, update.Message.Chat.ID, "55")
+				total := totalSum()
+				strconv.Itoa(total)
+				client.writeMessage(update.Message.Chat.ID, strconv.Itoa(total))
 			}
 		} else {
 			re := regexp.MustCompile(`^\s*\d+\.?\d+`)
 			answer := re.FindAllString(update.Message.Text, 1)
 
 			if answer != nil {
-				writeMessage(connect, update.Message.Chat.ID, "Nice")
-				// number, err := strconv.Atoi(answer[0])
+				number, err := strconv.Atoi(answer[0])
 
-				// if err != nil {
-				// 	log.Fatal(err)
-				// }
+				if err != nil {
+					log.Fatal(err)
+				}
 
-				// storageClient.Write(update.Message.Chat.ID, update.Message.Date, number)
+				write(update.Message.Chat.ID, update.Message.Date, number)
 			} else {
-				writeMessage(connect, update.Message.Chat.ID, "Not matched")
+				client.writeMessage(update.Message.Chat.ID, "Not matched")
 			}
 		}
 	}
